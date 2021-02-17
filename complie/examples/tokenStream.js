@@ -1,5 +1,4 @@
 
-// input:InputStream
 function TokenStream(input){
     let current = null;
     let keywords = {
@@ -137,5 +136,11 @@ function TokenStream(input){
         return peek == null;
     }
 
+    return {
+        next  : next,
+        peek  : peek,
+        eof   : eof,
+        croak : input.croak
+    };
 
 }
