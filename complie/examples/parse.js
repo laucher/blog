@@ -53,7 +53,8 @@ function parse(input) {
     function unexpected(){
         input.croak("Unexpected token: " + JSON.stringify(input.peek()));
     }
-
+    
+    // 解析操作符
     function maybe_binary(left, my_prec){
         const tok = is_op();
         if(tok){
@@ -71,7 +72,7 @@ function parse(input) {
         return left;
     }
 
-
+    // 公共函数
     function delimited(start, stop, separator, parser){
         const a = [], first = true;
         skip_punc(start);
@@ -86,7 +87,7 @@ function parse(input) {
         return a;
     }
 
-
+    // 解析函数调用
     function parse_call(func){
         return {
             type: "call",
@@ -94,6 +95,7 @@ function parse(input) {
             args: delimited("(",")",",", parse_expression),
         }
     }
+
 
     function parse_varname(){
         const name = input.next();
@@ -203,10 +205,9 @@ function parse(input) {
     function parse_expression(){
         return maybe_call(function(){
             return maybe_binary(parse_atom(), 0);
-        })
+        });
     }
 
-
-
+    // 解析顶层表达式
     return parse_toplevel();
 }
