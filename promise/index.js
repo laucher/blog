@@ -67,6 +67,71 @@ const resolve = (promise, x) => {
     }
 }
 
-const invokeCallbcak = ()=>{
-    
+const invokeCallbcak = (promise)=>{
+    if(promise._stauts === PENDING){
+        return;
+    }
+    nextTick(()=>{
+        while(promise._callbacks.length){
+            const {
+                onFulfilled = (value => value),
+                onRejected = (reason => { throw reason }),
+                thenPromise
+            } = promise._callbacks.shift();
+
+            let value;
+
+            try {
+                value = (promise._status === FUFILLED ? onFulfilled : onRejected)(promise._value)
+            }catch(e){
+                reject(thenPromise, e);
+                continue;
+            }
+            resolve(thenPromise, value);
+        }
+    })
+};
+
+export default class Promise {
+    static resolve(value){
+        return new Promise((resolve, reject)=>resolve(value));
+    }
+    static reject(reason){
+        return new Promise((resolve, reject)=>reject(reason))
+    }
+    constructor(resolver){
+        if(!(this instanceof Promise)){
+            throw new TypeError(`Class constructor Promise cannot be invoked without 'new'`)
+        }
+        if(!isFunction(resolver)){
+            throw new TypeError(`Promise resolver ${resolver} is not a function`);
+        }
+
+        this._status = PENDING;
+        this._value = void 0;
+        this._callbacks = [];
+        try{
+            resolver(value => resolve(this,value), reason => reject(this, reason))
+        }catch(e){
+            reject(this, e);
+        }
+    }
+
+    then(onFulfilled, onRejected){
+        const thenPromise = new this.constructor(noop);
+
+        this._callbacks= this._callbacks.concat([{
+            onFulfilled: isFunction(onFulfilled) ? onFulfilled : void 0,
+            onRejected: isFunction(onRejected) ? onRejected : void 0,
+            thenPromise,
+        }]);
+
+        invokeCallbcak(this);
+
+        return thenPromise;
+    }
+
+    catch(onRejected){
+        return this.then(void 0, onRejected)
+    }
 }
