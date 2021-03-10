@@ -26,7 +26,14 @@ function evaluate(exp, env) {
             const cond = evaluate(exp.cond, env);
             if (cond !== false) return evaluate(exp.then, env);
             return exp.else ? evaluate(exp.else, env) : false;
-
+        case "let":
+            exp.vars.forEach(v=>{
+                const scope = env.extend();
+                scope.def(v.name, v.def ? evaluate(v.def, env): false);
+                env = scope;
+            });
+            return evaluate(exp.body, env);
+        
         case "prog":
             const val = false;
             exp.prog.forEach(function(exp){
@@ -83,6 +90,10 @@ function apply_op(op, left, right){
 
 
 function make_lambda(env, exp){
+    if(exp.name){
+        env = env.extend();
+        env.def(exp.name, lambda);
+    }
     function lambda(){
         const names = exp.vars;
         const scope = env.extend();

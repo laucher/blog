@@ -8,7 +8,8 @@ function TokenStream(input){
         'lambda': true,
         'λ': true,
         'true': true,
-        'false': true
+        'false': true,
+        'let': true,
     };
 
     function is_keyword(x){

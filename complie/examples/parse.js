@@ -72,6 +72,43 @@ function parse(input) {
         return left;
     }
 
+    function parse_vardef(){
+        const name = parse_varname(), def;
+        if(is_op("=")){
+            input.next();
+            def = parse_expression();
+        }
+        return {
+            name,
+            def,
+        }
+    }
+
+    function parse_let(){
+        skip_kw("let");
+        if(input.peek().type === "var"){
+            const name = input.next().value;
+            const defs = delimited("(", ")", ",", parse_vardef);
+            return {
+                type: "call",
+                func:{
+                    type: "lambda",
+                    name:name,
+                    vars: defs.map(function(def){ return def.name }),
+                    body: parse_expression(),
+                },
+                args: defs.map(def => def.def || FALSE)
+            }
+        }
+        return {
+            type: "let",
+            vars: delimited("(", ")", ",", parse_vardef),
+            body: parse_expression(),
+        }
+    }
+
+
+
     // 公共函数
     function delimited(start, stop, separator, parser){
         const a = [], first = true;
@@ -127,6 +164,7 @@ function parse(input) {
     function parse_lambda(){
         return {
             type: "lambda",
+            name: input.peek().type === 'var' ? input.next().value : null,
             vars: delimited("(",")",",",parse_varname),
             body: parse_expression()
         }
@@ -153,9 +191,15 @@ function parse(input) {
                 skip_punc(")");
                 return exp;
             }
+
             if(is_punc("{")){
                 return parse_prog();
             }
+
+            if(is_kw("let")){
+                return parse_let();
+            }
+
             if(is_kw("if")){
                 return parse_if();
             }
