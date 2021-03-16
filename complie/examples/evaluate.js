@@ -26,6 +26,7 @@ function evaluate(exp, env) {
             const cond = evaluate(exp.cond, env);
             if (cond !== false) return evaluate(exp.then, env);
             return exp.else ? evaluate(exp.else, env) : false;
+            
         case "let":
             exp.vars.forEach(v=>{
                 const scope = env.extend();

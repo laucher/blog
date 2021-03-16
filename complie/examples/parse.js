@@ -1,6 +1,6 @@
 
 const FALSE = { type: 'bool', value: false };
-
+// 优先级处理，小括号，<和<=的区别
 const PRECEDENCE = {
     "=": 1,
     "||": 2,
